@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/textproto"
@@ -585,6 +586,7 @@ func (c *ServerConn) openDataConn() (net.Conn, error) {
 // cmd is a helper function to execute a command and check for the expected FTP
 // return code
 func (c *ServerConn) cmd(expected int, format string, args ...interface{}) (int, string, error) {
+	fmt.Println("issuing Cmd ", format)
 	_, err := c.conn.Cmd(format, args...)
 	if err != nil {
 		return 0, "", err
@@ -598,6 +600,7 @@ func (c *ServerConn) cmd(expected int, format string, args ...interface{}) (int,
 func (c *ServerConn) cmdDataConnFrom(offset uint64, format string, args ...interface{}) (net.Conn, error) {
 	// If server requires PRET send the PRET command to warm it up
 	// See: https://tools.ietf.org/html/draft-dd-pret-00
+	fmt.Println("3 cmdDataConnFrom")
 	if c.usePRET {
 		_, _, err := c.cmd(-1, "PRET "+format, args...)
 		if err != nil {
@@ -891,6 +894,7 @@ func (c *ServerConn) RetrFrom(path string, offset uint64) (*Response, error) {
 //
 // Hint: io.Pipe() can be used if an io.Writer is required.
 func (c *ServerConn) Stor(path string, r io.Reader) error {
+	fmt.Println("> 1 Stor")
 	return c.StorFrom(path, r, 0)
 }
 
@@ -918,6 +922,7 @@ func (c *ServerConn) checkDataShut() error {
 //
 // Hint: io.Pipe() can be used if an io.Writer is required.
 func (c *ServerConn) StorFrom(path string, r io.Reader, offset uint64) error {
+	fmt.Println("2 Issuing STOR")
 	conn, err := c.cmdDataConnFrom(offset, "STOR %s", path)
 	if err != nil {
 		return err
